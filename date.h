@@ -3,6 +3,12 @@
 
 typedef struct date Date;
 
+struct date {
+    int day;
+    int month;
+    int year;
+};
+
 /*
  * date_create creates a Date structure from `datestr`
  * `datestr' is expected to be of the form "dd/mm/yyyy"
