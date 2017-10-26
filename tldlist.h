@@ -24,11 +24,24 @@ TLDList *tldlist_create(Date *begin, Date *end);
 void tldlist_destroy(TLDList *tld);
 
 /*
+ * create_node
+ */
+TLDNode *create_node(char *tld);
+
+/*
+ *  gettld - Utility function designed to extract the tld from the hostname string
+ */
+char *gettld(char *hostname);
+
+/*
  * tldlist_add adds the TLD contained in `hostname' to the tldlist if
  * `d' falls in the begin and end dates associated with the list;
  * returns 1 if the entry was counted, 0 if not
  */
 int tldlist_add(TLDList *tld, char *hostname, Date *d);
+
+
+TLDNode *tldlist_insert(TLDNode *node, char *tld);
 
 /*
  * tldlist_count returns the number of successful tldlist_add() calls since
