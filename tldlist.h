@@ -47,7 +47,7 @@ TLDNode *tldlist_insert(TLDNode *node, char *tld);
  */
 long tldlist_count(TLDList *tld);
 
-TLDNode *get_least_leaf(TLDNode *node)
+TLDNode *get_least_leaf(TLDNode *node);
 
 TLDNode *get_next_inorder(TLDNode *node);
 
@@ -79,9 +79,9 @@ char *tldnode_tldname(TLDNode *node);
  */
 long tldnode_count(TLDNode *node);
 
-TLDNode *rightRotate(TLDNode *node);
+TLDNode *right_rotate(TLDNode *node);
 
-TLDNode *leftRotate(TLDNode *node);
+TLDNode *left_rotate(TLDNode *node);
 
 int max(int a, int b);
 

@@ -252,12 +252,37 @@ long tldlist_count(TLDList *tld) {
 }
 
 TLDNode *get_least_leaf(TLDNode *node){
+    TLDNode *least;
 
+    // Error Checking
+    if (node == NULL){ return node; }
+    // Checks both the left and right recursively in-order
+    else if((least = get_least_leaf(node->left)) != NULL){ return least; }
+    else if((least = get_least_leaf(node->right)) != NULL){ return least; }
+    // If at a leaf node, returns the node as is
+    else { return node; }
 }
 
+
+/*
+ * get_next_inorder - does in-order iteration over the list as is
+ */
 TLDNode *get_next_inorder(TLDNode *node){
+    // If the next node on the right of its parent is itself
+    // and:
+    // If the next node on the right exists
+    // then:
+    // Get the next node recursively from the parents right node
+    // else:
+    // Next node is the parent of the current node
+    if((node->parent->right != node) && (node->parent->right != NULL))
+        node = get_least_leaf(node->parent->right);
+    else
+        node = node->parent;
 
+    return node;
 }
+
 
 /*
  * tldlist_iter_create creates an iterator over the TLDList; returns a pointer
@@ -265,10 +290,10 @@ TLDNode *get_next_inorder(TLDNode *node){
  */
 TLDIterator *tldlist_iter_create(TLDList *tld) {
     TLDIterator *iter = (TLDIterator *) malloc(sizeof(TLDIterator));
+    // Error checking
     if (iter == NULL) return NULL;
 
-    // TODO: Setup everything here
-
+    // Assigns the first created value to be the least in the list
     iter->node = get_least_leaf(tld->root);
 
     return iter;
@@ -284,6 +309,9 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
 
     // If there are no more elements, return null
     if(current == NULL) return NULL;
+
+    // If the current node is the root
+    if(current == iter->list->root) return NULL;
 
     // Assign the next pointer to the returned node
     next = get_next_inorder(current);
