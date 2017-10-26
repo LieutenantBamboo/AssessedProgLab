@@ -62,6 +62,7 @@ void tldlist_destroy(TLDList *tld) {
     date_destroy(tld->end);
     free(tld);
     tldlist_iter_destroy(it);
+    // TODO: Confirm no memory leakage
 }
 
 /*
