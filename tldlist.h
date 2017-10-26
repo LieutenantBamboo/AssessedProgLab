@@ -77,4 +77,10 @@ char *tldnode_tldname(TLDNode *node);
  */
 long tldnode_count(TLDNode *node);
 
+TLDNode *rightRotate(TLDNode *node);
+
+TLDNode *leftRotate(TLDNode *node);
+
+int max(int a, int b);
+
 #endif /* _TLDLIST_H_INCLUDED_ */

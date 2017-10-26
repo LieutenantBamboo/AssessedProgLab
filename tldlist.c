@@ -5,6 +5,14 @@
 #include <stdio.h>
 #include "tldlist.h"
 
+
+/* struct tldlist
+ * Contains:
+ * root - root of the list
+ * begin - date to start considering entries
+ * end - date to stop considering entries
+ * size - size of the list
+ */
 struct tldlist {
     TLDNode *root;
     Date *begin;
@@ -12,6 +20,15 @@ struct tldlist {
     int size;
 
 };
+
+/* struct tldnode
+ * Contains:
+ * tld - string representing the top-level-domain
+ * right - right child of the node
+ * left - left child of the node
+ * parent - parent of the node
+ */
+
 struct tldnode {
     char *tld;
     TLDNode *right;
@@ -19,6 +36,13 @@ struct tldnode {
     TLDNode *parent;
     int height, count;
 };
+
+/* struct tldnode
+ * Contains:
+ * list - list to be iterated over
+ * node - current position (node) in the iterator
+ */
+
 struct tlditerator {
     TLDList *list;
     TLDNode *node;
@@ -65,6 +89,44 @@ void tldlist_destroy(TLDList *tld) {
     // TODO: Confirm no memory leakage
 }
 
+int max(int a, int b) { return a > b ? a : b; }
+
+int get_height(TLDNode *node) {
+    if (node == NULL) return 0;
+
+    return node->height;
+}
+
+TLDNode *right_rotate(TLDNode *node) {
+    TLDNode *l = node->left;
+    TLDNode *temp = l->right;
+
+    // Rotate given nodes
+    l->right = node;
+    node->left = temp;
+
+    // Update heights of given nodes
+    node->height = 1 + max(get_height(node->left), get_height(node->right));
+    l->height = 1 + max(get_height(l->left), get_height(l->right));
+
+    return l;
+}
+
+TLDNode *left_rotate(TLDNode *node) {
+    TLDNode *r = node->right;
+    TLDNode *temp = r->left;
+
+    // Rotate given nodes
+    r->left = node;
+    node->right = temp;
+
+    // Update heights of given nodes
+    node->height = 1 + max(get_height(node->left), get_height(node->right));
+    r->height = 1 + max(get_height(r->left), get_height(r->right));
+
+    return r;
+}
+
 /*
  *  gettld - Utility function designed to extract the tld from the hostname string
  */
@@ -104,11 +166,10 @@ char *gettld(char *hostname) {
 }
 
 // Get Balance factor of node N
-int get_balance(TLDNode *node)
-{
+int get_balance(TLDNode *node) {
     if (node == NULL) return 0;
 
-    return height(node->left) - height(node->right);
+    return (get_height(node->left) - get_height(node->right));
 }
 
 /*
@@ -123,19 +184,18 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d) {
     // If the date to be added is within the bounds of the tldlist
     if (date_compare(d, tld->begin) <= 0 && date_compare(d, tld->end) <= 0) {
         // Call the to-be-built insert function
-        if (tldlist_insert(tld, tld->root, tldvar) != NULL) return 1;
+        if (tldlist_insert(tld->root, tldvar) != NULL) return 1;
     }
     return 0;
 }
 
 /*
- * tldlist_add adds the TLD contained in `hostname' to the tldlist if
- * `d' falls in the begin and end dates associated with the list;
- * returns 1 if the entry was counted, 0 if not
+ * tldlist_insert acts as a recursive function to insert a node and balance the tree on the way back up
  */
 TLDNode *tldlist_insert(TLDNode *node, char *tld) {
     // BST add implementation
     if (node == NULL) {
+        //node->parent = set_parent(node);
         return create_node(tld);
     } else if (strcmp(tld, node->tld) > 0) {
         // Assign the node's left to a recursive call and assign the childs parent as the node
@@ -143,7 +203,7 @@ TLDNode *tldlist_insert(TLDNode *node, char *tld) {
         node->right->parent = node;
     } else if (strcmp(tld, node->tld) < 0) {
         // Identical as above, but for the left
-        node->left = tldlist_add(node->left, tld);
+        node->left = tldlist_insert(node->left, tld);
         node->left->parent = node;
     } else {
         // If node strings are equal, increase the count of the already present node
@@ -152,9 +212,10 @@ TLDNode *tldlist_insert(TLDNode *node, char *tld) {
     }
 
     // Update height of current node
-    node->height = 1 + max(height(node->left), height(node->right));
+    node->height = 1 + max(get_height(node->left), get_height(node->right));
 
     // Check balance value
+    int balance = get_balance(node);
 
     // LL
     if (balance > 1 && strcmp(tld, node->left->tld) < 0) return right_rotate(node);
@@ -164,7 +225,7 @@ TLDNode *tldlist_insert(TLDNode *node, char *tld) {
 
     // LR
     if (balance > 1 && strcmp(tld, node->left->tld) > 0) {
-        node->left =  left_rotate(node->left);
+        node->left = left_rotate(node->left);
         return right_rotate(node);
     }
 
@@ -207,15 +268,13 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
     TLDNode *next = iter->node;
 
     if (next == NULL) return NULL;
-
+    return next;
 }
 
 /*
  * tldlist_iter_destroy destroys the iterator specified by `iter'
  */
 void tldlist_iter_destroy(TLDIterator *iter) {
-    free(iter->node);
-    free(iter->list);
     free(iter);
 }
 
