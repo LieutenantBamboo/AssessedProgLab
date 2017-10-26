@@ -1,9 +1,13 @@
 // Created by Matthew Connor Day
+// Login: 2266981d
+// Title: APH Exercise 1
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "date.h"
 #include "tldlist.h"
+
 
 
 /* struct tldlist
@@ -56,7 +60,7 @@ struct tlditerator {
  * returns a pointer to the list if successful, NULL if not
  */
 TLDList *tldlist_create(Date *begin, Date *end) {
-    struct tldlist *t;
+    TLDList *t;
 
     if ((t = (TLDList *) malloc(sizeof(TLDList))) != NULL) {
         t->root = NULL;
@@ -132,7 +136,7 @@ TLDNode *left_rotate(TLDNode *node) {
  */
 TLDNode *create_node(char *tld) {
     // Allocate required memory for the node
-    TLDNode *node = (struct tldnode *) malloc(sizeof(struct tldnode));
+    TLDNode *node = (TLDNode *) malloc(sizeof(TLDNode));
     // Setup Node properties
     node->tld = tld;
     node->left = NULL;
@@ -247,6 +251,14 @@ long tldlist_count(TLDList *tld) {
     return tld->size;
 }
 
+TLDNode *get_least_leaf(TLDNode *node){
+
+}
+
+TLDNode *get_next_inorder(TLDNode *node){
+
+}
+
 /*
  * tldlist_iter_create creates an iterator over the TLDList; returns a pointer
  * to the iterator if successful, NULL if not
@@ -257,6 +269,8 @@ TLDIterator *tldlist_iter_create(TLDList *tld) {
 
     // TODO: Setup everything here
 
+    iter->node = get_least_leaf(tld->root);
+
     return iter;
 }
 
@@ -265,9 +279,18 @@ TLDIterator *tldlist_iter_create(TLDList *tld) {
  * to the TLDNode if successful, NULL if no more elements to return
  */
 TLDNode *tldlist_iter_next(TLDIterator *iter) {
-    TLDNode *next = iter->node;
+    TLDNode *current = iter->node;
+    TLDNode *next;
 
+    // If there are no more elements, return null
+    if(current == NULL) return NULL;
+
+    // Assign the next pointer to the returned node
+    next = get_next_inorder(current);
+
+    // Check to make sure iterator has correctly functioned
     if (next == NULL) return NULL;
+    iter->node = next;
     return next;
 }
 
@@ -291,8 +314,4 @@ char *tldnode_tldname(TLDNode *node) {
  */
 long tldnode_count(TLDNode *node) {
     return node->count;
-}
-
-int main() {
-    printf("\n");
 }

@@ -1,4 +1,6 @@
 // Created by Matthew Connor Day
+// Login: 2266981d
+// Title: APH Exercise 1
 
 #include <string.h>
 #include <stdlib.h>
@@ -13,7 +15,7 @@
  */
 Date *date_create(char *datestr) {
     // Define struct and copy variables
-    struct date *d = (struct date *) malloc(sizeof(struct date));
+    Date *d = (Date *) malloc(sizeof(Date));
     char *datestr_cpy = malloc(sizeof(datestr));
 
     // Copy string across
@@ -40,7 +42,7 @@ Date *date_create(char *datestr) {
  */
 Date *date_duplicate(Date *d) {
     // Copy by value, using dereferencing
-    struct date *cpy = (struct date *) malloc(sizeof(struct date));
+    Date *cpy = (Date *) malloc(sizeof(Date));
 
     if (cpy != NULL) {
         cpy->day = d->day;

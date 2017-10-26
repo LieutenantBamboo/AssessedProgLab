@@ -1,8 +1,6 @@
 #ifndef _TLDLIST_H_INCLUDED_
 #define _TLDLIST_H_INCLUDED_
 
-#include "date.h"
-
 typedef struct tldlist TLDList;
 typedef struct tldnode TLDNode;
 typedef struct tlditerator TLDIterator;
@@ -48,6 +46,10 @@ TLDNode *tldlist_insert(TLDNode *node, char *tld);
  * the creation of the TLDList
  */
 long tldlist_count(TLDList *tld);
+
+TLDNode *get_least_leaf(TLDNode *node)
+
+TLDNode *get_next_inorder(TLDNode *node);
 
 /*
  * tldlist_iter_create creates an iterator over the TLDList; returns a pointer
