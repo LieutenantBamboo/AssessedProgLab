@@ -24,7 +24,7 @@ void tldlist_destroy(TLDList *tld);
 /*
  * create_node
  */
-TLDNode *create_node(char *tld);
+TLDNode *create_node(TLDNode *parent, char *tld);
 
 /*
  *  gettld - Utility function designed to extract the tld from the hostname string
@@ -39,7 +39,7 @@ char *gettld(char *hostname);
 int tldlist_add(TLDList *tld, char *hostname, Date *d);
 
 
-TLDNode *tldlist_insert(TLDNode *node, char *tld);
+TLDNode *tldlist_insert(TLDList *list, TLDNode *parent, TLDNode *node, char *tld);
 
 /*
  * tldlist_count returns the number of successful tldlist_add() calls since

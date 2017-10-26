@@ -103,11 +103,14 @@ int get_height(TLDNode *node) {
 
 TLDNode *right_rotate(TLDNode *node) {
     TLDNode *l = node->left;
-    TLDNode *temp = l->right;
+    TLDNode *t1 = l->left;
+    TLDNode *mid_tree = l->right;
 
-    // Rotate given nodes
+    // Rotate given nodes while updating parents
     l->right = node;
-    node->left = temp;
+    node->left = mid_tree;
+    mid_tree->parent = node;
+
 
     // Update heights of given nodes
     node->height = 1 + max(get_height(node->left), get_height(node->right));
@@ -118,11 +121,12 @@ TLDNode *right_rotate(TLDNode *node) {
 
 TLDNode *left_rotate(TLDNode *node) {
     TLDNode *r = node->right;
-    TLDNode *temp = r->left;
+    TLDNode *mid_tree = r->left;
 
     // Rotate given nodes
     r->left = node;
-    node->right = temp;
+    node->right = mid_tree;
+    mid_tree->parent = node;
 
     // Update heights of given nodes
     node->height = 1 + max(get_height(node->left), get_height(node->right));
@@ -134,18 +138,18 @@ TLDNode *left_rotate(TLDNode *node) {
 /*
  *  gettld - Utility function designed to extract the tld from the hostname string
  */
-TLDNode *create_node(char *tld) {
+TLDNode *create_node(TLDNode *parent, char *tld) {
     // Allocate required memory for the node
-    TLDNode *node = (TLDNode *) malloc(sizeof(TLDNode));
+    TLDNode *new_node = (TLDNode *) malloc(sizeof(TLDNode));
     // Setup Node properties
-    node->tld = tld;
-    node->left = NULL;
-    node->right = NULL;
-    node->parent = NULL;
-    node->count = 1;
-    node->height = 1;
+    new_node->tld = tld;
+    new_node->left = NULL;
+    new_node->right = NULL;
+    new_node->parent = parent;
+    new_node->count = 1;
+    new_node->height = 1;
     // Return node
-    return node;
+    return new_node;
 }
 
 /*
@@ -157,8 +161,11 @@ char *gettld(char *hostname) {
     // Define delimiter
     const char delim[2] = ".";
 
+    // Copy hostname to token
+    strcpy(token, hostname);
+
     // Get the first token
-    token = strtok(hostname, delim);
+    token = strtok(token, delim);
 
     // Loop through to the last
     while (token != NULL) {
@@ -186,9 +193,13 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d) {
     char *tldvar = gettld(hostname);
 
     // If the date to be added is within the bounds of the tldlist
-    if (date_compare(d, tld->begin) <= 0 && date_compare(d, tld->end) <= 0) {
-        // Call the to-be-built insert function
-        if (tldlist_insert(tld->root, tldvar) != NULL) return 1;
+    if (date_compare(d, tld->begin) >= 0 && date_compare(d, tld->end) <= 0) {
+        // Call the recursive insert function
+        if((tld->root = tldlist_insert(tld, NULL, tld->root, tldvar)) != NULL){
+            tld->size++;
+            return 1;
+        }
+
     }
     return 0;
 }
@@ -196,23 +207,24 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d) {
 /*
  * tldlist_insert acts as a recursive function to insert a node and balance the tree on the way back up
  */
-TLDNode *tldlist_insert(TLDNode *node, char *tld) {
-    // BST add implementation
-    if (node == NULL) {
-        //node->parent = set_parent(node);
-        return create_node(tld);
-    } else if (strcmp(tld, node->tld) > 0) {
+TLDNode *tldlist_insert(TLDList *list, TLDNode *parent, TLDNode *node, char *tld) {
+    // BST recursive insert function with AVL
+    if (node == NULL) return create_node(parent, tld);
+
+    // Keeping parent pointers where they should be (mini-hack)
+    node->parent = parent;
+
+    if (strcmp(tld, node->tld) > 0) {
         // Assign the node's left to a recursive call and assign the childs parent as the node
-        node->right = tldlist_insert(node->right, tld);
-        node->right->parent = node;
+        node->right = tldlist_insert(list, node, node->right, tld);
     } else if (strcmp(tld, node->tld) < 0) {
         // Identical as above, but for the left
-        node->left = tldlist_insert(node->left, tld);
-        node->left->parent = node;
+        node->left = tldlist_insert(list, node, node->left, tld);
     } else {
         // If node strings are equal, increase the count of the already present node
         node->count++;
         free(tld);
+        return node;
     }
 
     // Update height of current node
@@ -316,7 +328,6 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
     // Assign the next pointer to the returned node
     next = get_next_inorder(current);
 
-    // Check to make sure iterator has correctly functioned
     if (next == NULL) return NULL;
     iter->node = next;
     return next;
