@@ -4,7 +4,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "date.h"
 #include "tldlist.h"
 
@@ -48,7 +47,6 @@ struct tldnode {
  */
 
 struct tlditerator {
-    TLDList *list;
     TLDNode *node;
 };
 
@@ -78,10 +76,10 @@ TLDList *tldlist_create(Date *begin, Date *end) {
 void tldlist_destroy(TLDList *tld) {
     // Iterate through all nodes and free, finally freeing the list itself
     // Memory-Leak-Proof Stuff Here
-    TLDIterator *it = tldlist_iter_create(tld);
+    TLDIterator *iter = tldlist_iter_create(tld);
     TLDNode *node;
 
-    while ((node = tldlist_iter_next(it)) != NULL) {
+    while ((node = tldlist_iter_next(iter)) != NULL) {
         free(node->tld);
         free(node);
     }
@@ -89,7 +87,7 @@ void tldlist_destroy(TLDList *tld) {
     date_destroy(tld->begin);
     date_destroy(tld->end);
     free(tld);
-    tldlist_iter_destroy(it);
+    tldlist_iter_destroy(iter);
     // TODO: Confirm no memory leakage
 }
 
@@ -310,7 +308,6 @@ TLDIterator *tldlist_iter_create(TLDList *tld) {
     if (iter == NULL) return NULL;
 
     // Assigns the first created value to be the least in the list
-    iter->list = tld;
     iter->node = get_least_leaf(tld->root);
 
     return iter;
@@ -329,7 +326,7 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
 
     // If the current node is the root
     if(current->parent == NULL) {
-        iter->node = NULL;
+        current = NULL;
         return current;
     }
 
