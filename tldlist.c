@@ -102,14 +102,16 @@ int get_height(TLDNode *node) {
 }
 
 TLDNode *right_rotate(TLDNode *node) {
+    TLDNode *parent = node->parent;
     TLDNode *l = node->left;
-    TLDNode *t1 = l->left;
     TLDNode *mid_tree = l->right;
 
     // Rotate given nodes while updating parents
     l->right = node;
     node->left = mid_tree;
-    mid_tree->parent = node;
+    if(mid_tree != NULL) mid_tree->parent = node;
+    l->parent = parent;
+    node->parent = l;
 
 
     // Update heights of given nodes
@@ -120,13 +122,16 @@ TLDNode *right_rotate(TLDNode *node) {
 }
 
 TLDNode *left_rotate(TLDNode *node) {
+    TLDNode *parent = node->parent;
     TLDNode *r = node->right;
     TLDNode *mid_tree = r->left;
 
     // Rotate given nodes
     r->left = node;
     node->right = mid_tree;
-    mid_tree->parent = node;
+    if(mid_tree != NULL) mid_tree->parent = node;
+    r->parent = parent;
+    node->parent = r;
 
     // Update heights of given nodes
     node->height = 1 + max(get_height(node->left), get_height(node->right));
@@ -269,8 +274,7 @@ TLDNode *get_least_leaf(TLDNode *node){
     // Error Checking
     if (node == NULL){ return node; }
     // Checks both the left and right recursively in-order
-    else if((least = get_least_leaf(node->left)) != NULL){ return least; }
-    else if((least = get_least_leaf(node->right)) != NULL){ return least; }
+    else if(((least = get_least_leaf(node->left)) != NULL) || ((least = get_least_leaf(node->right)) != NULL)){ return least; }
     // If at a leaf node, returns the node as is
     else { return node; }
 }
@@ -280,9 +284,9 @@ TLDNode *get_least_leaf(TLDNode *node){
  * get_next_inorder - does in-order iteration over the list as is
  */
 TLDNode *get_next_inorder(TLDNode *node){
-    // If the next node on the right of its parent is itself
+    // If the nodes parent right node is itself
     // and:
-    // If the next node on the right exists
+    // If the node on the right of the parent exists
     // then:
     // Get the next node recursively from the parents right node
     // else:
@@ -306,6 +310,7 @@ TLDIterator *tldlist_iter_create(TLDList *tld) {
     if (iter == NULL) return NULL;
 
     // Assigns the first created value to be the least in the list
+    iter->list = tld;
     iter->node = get_least_leaf(tld->root);
 
     return iter;
@@ -323,7 +328,10 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
     if(current == NULL) return NULL;
 
     // If the current node is the root
-    if(current == iter->list->root) return NULL;
+    if(current->parent == NULL) {
+        iter->node = NULL;
+        return current;
+    }
 
     // Assign the next pointer to the returned node
     next = get_next_inorder(current);
