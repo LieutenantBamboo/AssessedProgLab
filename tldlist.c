@@ -7,7 +7,27 @@
 #include "date.h"
 #include "tldlist.h"
 
+typedef struct tldlist TLDList;
+typedef struct tldnode TLDNode;
+typedef struct tlditerator TLDIterator;
 
+char *gettld(char *hostname);
+
+TLDNode *create_node(TLDNode *parent, char *tld);
+
+TLDNode *tldlist_insert(TLDList *list, TLDNode *parent, TLDNode *node, char *tld);
+
+TLDNode *get_least_leaf(TLDNode *node);
+
+TLDNode *get_next_iter(TLDNode *node, TLDIterator *iter);
+
+TLDNode *right_rotate(TLDNode *node);
+
+TLDNode *left_rotate(TLDNode *node);
+
+int get_balance(TLDNode *node);
+
+int max(int a, int b);
 
 /* struct tldlist
  * Contains:
@@ -69,10 +89,10 @@ TLDList *tldlist_create(Date *begin, Date *end) {
     return t;
 }
 
-/*
+/**
  * tldlist_destroy destroys the list structure in `tld'
- *
  * all heap allocated storage associated with the list is returned to the heap
+ * @param tld - The given list to be destroyed
  */
 void tldlist_destroy(TLDList *tld) {
     // Iterate through all nodes and free, finally freeing the list itself
@@ -89,8 +109,14 @@ void tldlist_destroy(TLDList *tld) {
     date_destroy(tld->end);
     free(tld);
     tldlist_iter_destroy(iter);
-    // TODO: Confirm no memory leakage
 }
+
+/**
+ * utility function to calculate the maximum of two integers
+ * @param a - first integer
+ * @param b - second integer
+ * @return return the max
+ */
 
 int max(int a, int b) { return a > b ? a : b; }
 
@@ -114,7 +140,7 @@ TLDNode *right_rotate(TLDNode *node) {
     // Rotate given nodes while updating parents
     l->right = node;
     node->left = mid_tree;
-    if(mid_tree != NULL) mid_tree->parent = node;
+    if (mid_tree != NULL) mid_tree->parent = node;
     l->parent = parent;
     node->parent = l;
 
@@ -140,7 +166,7 @@ TLDNode *left_rotate(TLDNode *node) {
     // Rotate given nodes
     r->left = node;
     node->right = mid_tree;
-    if(mid_tree != NULL) mid_tree->parent = node;
+    if (mid_tree != NULL) mid_tree->parent = node;
     r->parent = parent;
     node->parent = r;
 
@@ -218,7 +244,7 @@ int tldlist_add(TLDList *tld, char *hostname, Date *d) {
     // If the date to be added is within the bounds of the tldlist
     if (date_compare(d, tld->begin) >= 0 && date_compare(d, tld->end) <= 0) {
         // Call the recursive insert function
-        if((tld->root = tldlist_insert(tld, NULL, tld->root, tldvar)) != NULL){
+        if ((tld->root = tldlist_insert(tld, NULL, tld->root, tldvar)) != NULL) {
             tld->size++;
             return 1;
         }
@@ -286,33 +312,35 @@ long tldlist_count(TLDList *tld) {
     return tld->size;
 }
 
-TLDNode *get_least_leaf(TLDNode *node){
+TLDNode *get_least_leaf(TLDNode *node) {
     TLDNode *least;
 
     // Error Checking
-    if (node == NULL){ return node; }
-    // Checks both the left and right recursively in-order
-    else if(((least = get_least_leaf(node->left)) != NULL) || ((least = get_least_leaf(node->right)) != NULL)){ return least; }
-    // If at a leaf node, returns the node as is
+    if (node == NULL) { return node; }
+        // Checks both the left and right recursively in-order
+    else if (((least = get_least_leaf(node->left)) != NULL) ||
+             ((least = get_least_leaf(node->right)) != NULL)) { return least; }
+        // If at a leaf node, returns the node as is
     else { return node; }
 }
 
 
 /*
- * get_next_inorder - does in-order iteration over the list as is
+ * get_next_iter - does iteration over the list as is
  */
-TLDNode *get_next_inorder(TLDNode *node, TLDIterator *iter){
-    // If the nodes parent right node is itself
-    // and:
-    // If the node on the right of the parent exists
-    // then:
-    // Get the next node recursively from the parents right node
-    // else:
-    // Next node is the parent of the current node
-    //if(node->left == NULL && node->right != NULL && node != iter->last) node = node->right;
-    if(iter->last == NULL) return node;
-    else if((node->parent->right != node) && (node->parent->right != NULL))
+TLDNode *get_next_iter(TLDNode *node, TLDIterator *iter) {
+
+    // If this is the first iteration
+    if (iter->last == NULL) return node;
+        // If the nodes parent right node is itself
+        // and:
+        // If the node on the right of the parent exists
+        // then:
+        // Get the next node recursively from the parents right node
+    else if ((node->parent->right != node) && (node->parent->right != NULL))
         node = get_least_leaf(node->parent->right);
+        // else:
+        // Next node is the parent of the current node
     else
         node = node->parent;
 
@@ -345,16 +373,16 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
     TLDNode *next;
 
     // If there are no more elements, return null
-    if(current == NULL) return NULL;
+    if (current == NULL) return NULL;
 
     // If the current node is the root
-    if(current->parent == NULL) {
+    if (current->parent == NULL) {
         current = NULL;
         return current;
     }
 
     // Assign the next pointer to the returned node
-    next = get_next_inorder(current, iter);
+    next = get_next_iter(current, iter);
     iter->last = current;
 
     if (next == NULL) return NULL;

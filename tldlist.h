@@ -49,7 +49,7 @@ long tldlist_count(TLDList *tld);
 
 TLDNode *get_least_leaf(TLDNode *node);
 
-TLDNode *get_next_inorder(TLDNode *node, TLDIterator *iter);
+TLDNode *get_next_iter(TLDNode *node, TLDIterator *iter);
 
 /*
  * tldlist_iter_create creates an iterator over the TLDList; returns a pointer

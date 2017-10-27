@@ -4,8 +4,14 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
+// #include <stdio.h> Used for tracing
 #include "date.h"
+
+struct date {
+    int day;
+    int month;
+    int year;
+};
 
 /*
  * date_create creates a Date structure from `datestr`
