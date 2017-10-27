@@ -30,7 +30,7 @@ Date *date_create(char *datestr) {
         d->month = atoi(datestr_cpy);
         datestr_cpy = strtok(NULL, "/");
         d->year = atoi(datestr_cpy);
-        printf("Day: %d Month: %d Year: %d\n", d->day, d->month, d->year);
+        //printf("Day: %d Month: %d Year: %d\n", d->day, d->month, d->year);
     }
     return d;
 }

@@ -40,14 +40,15 @@ struct tldnode {
     int height, count;
 };
 
-/* struct tldnode
+/* struct tlditerator
  * Contains:
- * list - list to be iterated over
- * node - current position (node) in the iterator
+ * node - current node in iteration
+ * last - last node visited
  */
 
 struct tlditerator {
     TLDNode *node;
+    TLDNode *last;
 };
 
 /*
@@ -99,6 +100,12 @@ int get_height(TLDNode *node) {
     return node->height;
 }
 
+/**
+ * right_rotate - will rotate to the right, reassigning pointers and parents
+ * @param node - the root of the subtree to be rotated
+ * @return the new node at the root of the subtree
+ */
+
 TLDNode *right_rotate(TLDNode *node) {
     TLDNode *parent = node->parent;
     TLDNode *l = node->left;
@@ -119,6 +126,12 @@ TLDNode *right_rotate(TLDNode *node) {
     return l;
 }
 
+/**
+ * left_rotate - will rotate to the right, reassigning pointers and parents
+ * @param node - the root of the subtree to be rotated
+ * @return the new node at the root of the subtree
+ */
+
 TLDNode *left_rotate(TLDNode *node) {
     TLDNode *parent = node->parent;
     TLDNode *r = node->right;
@@ -138,9 +151,13 @@ TLDNode *left_rotate(TLDNode *node) {
     return r;
 }
 
-/*
- *  gettld - Utility function designed to extract the tld from the hostname string
+/**
+ * create_node - Utility function designed to create and return a default new node
+ * @param parent - parent of the new node
+ * @param tld - top level domain key string
+ * @return the newly created node
  */
+
 TLDNode *create_node(TLDNode *parent, char *tld) {
     // Allocate required memory for the node
     TLDNode *new_node = (TLDNode *) malloc(sizeof(TLDNode));
@@ -155,9 +172,12 @@ TLDNode *create_node(TLDNode *parent, char *tld) {
     return new_node;
 }
 
-/*
- *  gettld - Utility function designed to extract the tld from the hostname string
+/**
+ * gettld - Utility function designed to extract the tld from the hostname string
+ * @param hostname - The string to be converted into a tld
+ * @return
  */
+
 char *gettld(char *hostname) {
     char *tld = malloc(sizeof(hostname) + 1);
     char *token = malloc(sizeof(hostname) + 1);
@@ -281,7 +301,7 @@ TLDNode *get_least_leaf(TLDNode *node){
 /*
  * get_next_inorder - does in-order iteration over the list as is
  */
-TLDNode *get_next_inorder(TLDNode *node){
+TLDNode *get_next_inorder(TLDNode *node, TLDIterator *iter){
     // If the nodes parent right node is itself
     // and:
     // If the node on the right of the parent exists
@@ -289,7 +309,9 @@ TLDNode *get_next_inorder(TLDNode *node){
     // Get the next node recursively from the parents right node
     // else:
     // Next node is the parent of the current node
-    if((node->parent->right != node) && (node->parent->right != NULL))
+    //if(node->left == NULL && node->right != NULL && node != iter->last) node = node->right;
+    if(iter->last == NULL) return node;
+    else if((node->parent->right != node) && (node->parent->right != NULL))
         node = get_least_leaf(node->parent->right);
     else
         node = node->parent;
@@ -309,6 +331,7 @@ TLDIterator *tldlist_iter_create(TLDList *tld) {
 
     // Assigns the first created value to be the least in the list
     iter->node = get_least_leaf(tld->root);
+    iter->last = NULL;
 
     return iter;
 }
@@ -331,7 +354,8 @@ TLDNode *tldlist_iter_next(TLDIterator *iter) {
     }
 
     // Assign the next pointer to the returned node
-    next = get_next_inorder(current);
+    next = get_next_inorder(current, iter);
+    iter->last = current;
 
     if (next == NULL) return NULL;
     iter->node = next;
